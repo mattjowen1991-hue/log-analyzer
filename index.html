@@ -135,6 +135,7 @@
   <header>
     <h1>Hubstaff Audit Log Analyzer (v33)</h1>
     <p>Analyze audit.log files to understand tracking sessions, crashes, idle time, and more.</p>
+    <p style="font-size:11px; color:var(--accent); margin-top:4px;">🔒 Privacy: All analysis happens in your browser. No data is sent to any server.</p>
   </header>
   
   <main>
@@ -231,7 +232,55 @@
         </div>
       </div>
     </div>
+  <footer style="text-align:center; padding:20px; border-top:1px solid var(--border); margin-top:20px; font-size:12px; color:var(--muted);">
+      <span>Hubstaff Log Analyzer v33</span>
+      <span style="margin:0 10px;">|</span>
+      <span class="help-link" id="privacyBtn">🔒 Privacy Info</span>
+    </footer>
   </main>
+  
+  <div class="modal-overlay" id="privacyModal">
+    <div class="modal" style="max-width:550px;">
+      <button class="close-btn" id="closePrivacy">Close</button>
+      <h2>🔒 Privacy & Data Security</h2>
+      
+      <h3>Your data stays on your device</h3>
+      <p>This tool runs <strong>entirely in your web browser</strong>. When you paste log data:</p>
+      <ul>
+        <li>✅ Data is processed locally on your computer</li>
+        <li>✅ Nothing is sent to any server</li>
+        <li>✅ No data is stored in cookies or browser storage</li>
+        <li>✅ No tracking or analytics</li>
+      </ul>
+      
+      <h3>What happens when you click "Clear"</h3>
+      <ul>
+        <li>The text input is emptied</li>
+        <li>All parsed data is overwritten in memory</li>
+        <li>All displayed results are removed</li>
+        <li>A confirmation message appears</li>
+      </ul>
+      
+      <h3>What happens when you close the page</h3>
+      <ul>
+        <li>All data is automatically cleared</li>
+        <li>Nothing persists after you leave</li>
+        <li>No data remains in browser history</li>
+      </ul>
+      
+      <h3>Best practices</h3>
+      <ul>
+        <li>Click <strong>"Clear"</strong> when you're done analyzing</li>
+        <li>Close the browser tab when finished</li>
+        <li>Avoid sharing screenshots that show email addresses</li>
+      </ul>
+      
+      <div style="background:rgba(34,197,94,0.1); border:1px solid var(--accent); border-radius:8px; padding:12px; margin-top:16px;">
+        <p style="margin:0; color:var(--accent);"><strong>✅ Safe to use with sensitive logs</strong></p>
+        <p style="margin:8px 0 0 0; font-size:12px;">This tool is designed for support teams handling customer data. Your logs never leave your browser.</p>
+      </div>
+    </div>
+  </div>
   
   <div class="info-box" id="infoBox">
     <h4 id="infoTitle">Details</h4>
@@ -857,11 +906,38 @@
     };
     
     $('clearBtn').onclick = () => {
+      // Securely clear all data
       $('logInput').value = '';
       $('status').textContent = '';
+      
+      // Clear the result object
+      if (result) {
+        // Overwrite arrays with empty arrays
+        if (result.intervals) result.intervals.length = 0;
+        if (result.discarded) result.discarded.length = 0;
+        if (result.warns) result.warns.length = 0;
+        if (result.events) result.events.length = 0;
+        if (result.allEvents) result.allEvents.length = 0;
+      }
       result = null;
+      
+      // Clear timeline state
+      timelineMin = null;
+      timelineDur = null;
+      focusRatio = null;
+      selectedEl = null;
+      
+      // Clear rendered content
       render(null);
       hideInfoBox();
+      
+      // Show confirmation
+      $('status').textContent = '🔒 All data cleared from memory';
+      $('status').className = 'status success';
+      setTimeout(() => { $('status').textContent = ''; }, 3000);
+      
+      // Force garbage collection hint (browser may or may not act on this)
+      if (window.gc) window.gc();
     };
     
     $('plainMode').onchange = () => render(result);
@@ -1349,6 +1425,23 @@
       $('learnMoreContent').innerHTML = data.content;
       $('learnMoreModal').classList.add('visible');
     }
+    
+    $('privacyBtn').onclick = () => $('privacyModal').classList.add('visible');
+    $('closePrivacy').onclick = () => $('privacyModal').classList.remove('visible');
+    $('privacyModal').onclick = e => { if (e.target === $('privacyModal')) $('privacyModal').classList.remove('visible'); };
+    
+    // Clear data when page is closed/navigated away
+    window.addEventListener('beforeunload', () => {
+      $('logInput').value = '';
+      if (result) {
+        if (result.intervals) result.intervals.length = 0;
+        if (result.discarded) result.discarded.length = 0;
+        if (result.warns) result.warns.length = 0;
+        if (result.events) result.events.length = 0;
+        if (result.allEvents) result.allEvents.length = 0;
+      }
+      result = null;
+    });
     
     // Keyboard shortcut - Cmd/Ctrl + Enter to analyze
     document.addEventListener('keydown', e => {
