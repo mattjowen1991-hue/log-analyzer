@@ -408,6 +408,27 @@
       else if (line.includes('(START_BREAK)')) { type = 'START_BREAK'; plain = 'User started a break.'; }
       else if (line.includes('(STOP_BREAK)')) { type = 'STOP_BREAK'; plain = 'User ended a break.'; }
       else if (line.includes('(SHUTDOWN)')) { type = 'SHUTDOWN'; plain = 'App closed normally.'; }
+      else if (line.includes('(LOCATIONS_STATUS)')) { 
+        type = 'LOCATIONS_STATUS'; 
+        if (line.includes('Authorized')) plain = '📍 Location permissions granted.';
+        else if (line.includes('Denied') || line.includes('Restricted')) plain = '📍 Location permissions denied or restricted.';
+        else plain = '📍 Location permission status changed.';
+      }
+      else if (line.includes('Entered a geofence') || line.includes('Entered region')) { type = 'GEOFENCE_ENTER'; plain = '📍 User entered a Job Site.'; }
+      else if (line.includes('Exited region')) { type = 'GEOFENCE_EXIT'; plain = '📍 User left a Job Site.'; }
+      else if (line.includes('Discard=1')) { 
+        type = 'DISCARD'; 
+        if (line.includes('Timesheet is locked')) plain = '🔒 Time rejected - timesheet is locked/approved.';
+        else if (line.includes('future')) plain = '⏰ Time rejected - computer clock was set to the future.';
+        else if (line.includes('Duplicate')) plain = '📋 Time rejected - duplicate record already exists.';
+        else if (line.includes('too large')) plain = '📊 Time rejected - time slot exceeded 10 minutes.';
+        else plain = '❌ Time was discarded/rejected by server.';
+      }
+      else if (line.includes('Network Error')) { type = 'NETWORK_ERROR'; plain = '🌐 Network error - could not connect to server.'; }
+      else if (line.includes('Only injected input') || line.includes('was partially injected')) { type = 'INJECTED_INPUT'; plain = '⚠️ Detected injected/simulated input activity.'; }
+      else if (line.includes('Simulating missed input')) { type = 'SIMULATED_INPUT'; plain = '⚠️ Input was simulated due to detection issue.'; }
+      else if (line.includes('locked or screensaver active')) { type = 'SCREEN_LOCKED'; plain = '🔒 Input discarded - screen was locked or screensaver active.'; }
+      else if (line.includes('by [PROJECT_CONFIGURATION_LOCATION]')) { type = 'LEFT_JOBSITE'; plain = '📍 Tracking stopped - user left required Job Site.'; }
       else if (line.includes('(STARTUP_CLEAN)')) { type = 'STARTUP_CLEAN'; plain = 'App opened normally.'; }
       else if (line.includes('(STARTUP_UNCLEAN)')) { type = 'STARTUP_UNCLEAN'; plain = 'App opened after crash/force quit.'; }
       else if (line.includes('(RESUME_DETECTED)')) {
@@ -430,7 +451,7 @@
       else if (line.toLowerCase().includes('sentry event')) { type = 'SENTRY'; plain = 'Crash reported to Sentry.'; }
       
       if (type === 'START_TRACKING' || type === 'STOP_TRACKING') {
-        const rm = line.match(/by \[(\w+)\]/);
+        const rm = line.match(/by \[([^\]]+)\]/);
         reason = rm ? rm[1] : 'USER';
       }
       
@@ -611,7 +632,7 @@
       
       // Intervals table
       $('intervalsBody').innerHTML = data.intervals.map((it, i) => {
-        const stopCls = it.stopReason === 'USER' ? 'ok' : it.stopReason === 'IDLE' ? 'warn' : it.stopReason === 'SHUTDOWN' ? 'ok' : it.stopReason === 'CONFIGURATION' ? 'danger' : 'danger';
+        const stopCls = it.stopReason === 'USER' ? 'ok' : it.stopReason === 'IDLE' ? 'warn' : it.stopReason === 'SHUTDOWN' ? 'ok' : it.stopReason === 'CONFIGURATION' ? 'danger' : it.stopReason === 'PROJECT_CONFIGURATION_LOCATION' ? 'danger' : 'danger';
         const startCls = it.startReason === 'RESUMED' ? 'resume' : it.startReason === 'IDLE' ? 'warn' : 'ok';
         const isRecovered = it.startReason === 'RESUMED';
         const rowStyle = isRecovered ? 'background: rgba(129,140,248,0.1);' : '';
@@ -1109,6 +1130,213 @@
             <li>If removed from project: Admin needs to re-add user to the project</li>
             <li>If budget reached: Admin needs to increase budget or move to a new budget period</li>
           </ul>
+        `
+      },
+      'LEFT_JOBSITE': {
+        title: '📍 Left Required Job Site',
+        content: `
+          <h3>What happened?</h3>
+          <p>Tracking was automatically stopped because the user left a Job Site that is required for the project they were tracking to.</p>
+          
+          <h3>How Job Sites work</h3>
+          <ul>
+            <li>Some projects require users to be physically at a specific location (Job Site) to track time</li>
+            <li>The app uses GPS/location services to detect when the user enters or exits the Job Site</li>
+            <li>If the user leaves the Job Site boundary, tracking automatically stops</li>
+          </ul>
+          
+          <h3>Likely causes</h3>
+          <ul>
+            <li><strong>User physically left the location</strong> - They drove/walked away from the Job Site</li>
+            <li><strong>GPS drift</strong> - Poor GPS signal caused the phone to think they left</li>
+            <li><strong>Job Site radius too small</strong> - The geofence boundary is set too tight</li>
+            <li><strong>Location permissions changed</strong> - User may have revoked location access</li>
+          </ul>
+          
+          <h3>What to check</h3>
+          <ol>
+            <li>Was the user actually at the Job Site when tracking stopped?</li>
+            <li>Check the Job Site radius settings - is it large enough?</li>
+            <li>Check device location permissions</li>
+            <li>Look for <code>LOCATIONS_STATUS</code> events in the logs</li>
+          </ol>
+          
+          <h3>What to tell the customer</h3>
+          <p>The logs show tracking stopped at [TIME] because the app detected you left the required Job Site. If you were still physically at the location, this could be due to GPS signal issues. Check that location services are enabled and try moving to an area with better GPS reception.</p>
+        `
+      },
+      'DISCARD': {
+        title: '🔴 Time Rejected by Server',
+        content: `
+          <h3>What happened?</h3>
+          <p>The Hubstaff server rejected time that the app tried to upload. This means the tracked time will NOT appear in reports/dashboard.</p>
+          
+          <h3>Common reasons (Discard=1)</h3>
+          <ul>
+            <li><strong>Timesheet is locked</strong> - The timesheet for this period has been approved and cannot be edited</li>
+            <li><strong>Time slot in the future</strong> - The computer's clock was set incorrectly (ahead of real time)</li>
+            <li><strong>Duplicate record</strong> - This time was already uploaded previously</li>
+            <li><strong>Tracked is too large</strong> - A time slot exceeded 10 minutes (should never happen normally)</li>
+          </ul>
+          
+          <h3>What to check</h3>
+          <ol>
+            <li>Look at the specific <code>Discard=1 message:</code> in the logs for the exact reason</li>
+            <li>Check if the timesheet for that date is locked/approved</li>
+            <li>Verify the user's computer clock is set correctly</li>
+            <li>Check the dashboard to see what time actually recorded</li>
+          </ol>
+          
+          <h3>What to tell the customer</h3>
+          <p>The server rejected some tracked time because [REASON]. Unfortunately, discarded time cannot be recovered automatically. The user may need to add this time manually if their timesheet is not locked.</p>
+          
+          <h3>Prevention</h3>
+          <ul>
+            <li>Ensure computer clock is set to automatic</li>
+            <li>Submit timesheets before approval deadlines</li>
+            <li>Check for the timezone mismatch error article</li>
+          </ul>
+        `
+      },
+      'NETWORK_ERROR': {
+        title: '🌐 Network Error',
+        content: `
+          <h3>What happened?</h3>
+          <p>The app could not connect to Hubstaff servers to upload tracking data.</p>
+          
+          <h3>Likely causes</h3>
+          <ul>
+            <li><strong>No internet connection</strong> - WiFi/ethernet disconnected</li>
+            <li><strong>Firewall blocking</strong> - Corporate firewall blocking Hubstaff</li>
+            <li><strong>Antivirus interference</strong> - Security software blocking the connection</li>
+            <li><strong>Server outage</strong> - Hubstaff servers temporarily unavailable</li>
+            <li><strong>VPN issues</strong> - VPN causing connection problems</li>
+          </ul>
+          
+          <h3>What this means for tracked time</h3>
+          <p>The app queues data locally when network errors occur. Once connection is restored, it should upload automatically. However, if the app crashes before uploading, some data could be lost.</p>
+          
+          <h3>What to check</h3>
+          <ol>
+            <li>Did the time eventually appear in the dashboard?</li>
+            <li>Were there many network errors in a row?</li>
+            <li>Is there a firewall or antivirus that might block Hubstaff?</li>
+          </ol>
+          
+          <h3>What to tell the customer</h3>
+          <p>The logs show network errors at [TIME] which prevented data from uploading immediately. The app normally retries automatically. Please check if the time eventually appeared in your dashboard. If not, there may be a firewall or network issue preventing connection to Hubstaff servers.</p>
+        `
+      },
+      'INJECTED_INPUT': {
+        title: '⚠️ Injected Input Detected',
+        content: `
+          <h3>What happened?</h3>
+          <p>The app detected that keyboard/mouse input came from an "injected" source rather than actual physical input devices.</p>
+          
+          <h3>What "injected input" means</h3>
+          <p>Windows can detect when input comes from:</p>
+          <ul>
+            <li><strong>Real input (R)</strong> - Actual keyboard/mouse from the user</li>
+            <li><strong>Injected input (I)</strong> - Software-generated input from any process</li>
+            <li><strong>Low-integrity injected (LI)</strong> - Input from unverified/untrusted sources</li>
+          </ul>
+          
+          <h3>Possible causes</h3>
+          <ul>
+            <li><strong>Legitimate software</strong> - Remote desktop, accessibility tools, automation software</li>
+            <li><strong>Hardware issues</strong> - Faulty USB port or device causing false signals</li>
+            <li><strong>Activity simulation</strong> - Software designed to fake activity (cheating)</li>
+            <li><strong>Mouse/keyboard software</strong> - Gaming mice/keyboards with macro features</li>
+          </ul>
+          
+          <h3>What to check</h3>
+          <ol>
+            <li>Is the user using remote desktop or screen sharing?</li>
+            <li>Do they have accessibility software installed?</li>
+            <li>Is this happening consistently or occasionally?</li>
+            <li>Check the activity percentages - are they unusually high?</li>
+          </ol>
+          
+          <h3>Important note</h3>
+          <p>Injected input is NOT automatically cheating. Many legitimate tools inject input. Look for patterns like: consistently 100% activity, same screenshots repeating, injected input with no real input at all.</p>
+          
+          <h3>What to tell the customer</h3>
+          <p>The logs show some activity was detected as "injected" rather than direct keyboard/mouse input. This can happen with remote desktop software, accessibility tools, or certain hardware. If you're using any such software, this is expected behavior.</p>
+        `
+      },
+      'SIMULATED_INPUT': {
+        title: '⚠️ Simulated Input',
+        content: `
+          <h3>What happened?</h3>
+          <p>The app detected that input occurred but couldn't determine the exact source, so it "simulated" that input was received.</p>
+          
+          <h3>Why this happens</h3>
+          <p>On Windows, there are multiple ways to detect input. When the highly accurate method doesn't see input, but the OS reports activity occurred, the app simulates that both mouse and keyboard input happened.</p>
+          
+          <h3>Common causes</h3>
+          <ul>
+            <li><strong>Skype video calls</strong> - Skype can interfere with input detection</li>
+            <li><strong>Certain applications</strong> - Some apps don't report input normally</li>
+            <li><strong>Driver issues</strong> - Input device drivers not reporting correctly</li>
+          </ul>
+          
+          <h3>Is this cheating?</h3>
+          <p><strong>Usually no.</strong> Simulated input is the app compensating for detection limitations, not evidence of fake activity. It means "we know something happened but couldn't see exactly what."</p>
+          
+          <h3>What to tell the customer</h3>
+          <p>The logs show some input was detected indirectly. This is usually caused by certain applications interfering with activity detection and is not a cause for concern. The activity was still real - the app just couldn't determine if it was keyboard or mouse.</p>
+        `
+      },
+      'SCREEN_LOCKED': {
+        title: '🔒 Screen Locked / Screensaver Active',
+        content: `
+          <h3>What happened?</h3>
+          <p>The app detected that the computer screen was locked or the screensaver was active, so it discarded any input signals during this time.</p>
+          
+          <h3>Why input is discarded</h3>
+          <p>When the screen is locked, any detected "input" is likely false signals (not real user activity), so the app ignores it to maintain accurate activity tracking.</p>
+          
+          <h3>Impact on tracking</h3>
+          <ul>
+            <li>Time may still be tracked (if timer was running)</li>
+            <li>Activity percentage will be 0% during locked period</li>
+            <li>This may trigger idle detection if locked for too long</li>
+          </ul>
+          
+          <h3>What to tell the customer</h3>
+          <p>The logs show the screen was locked or screensaver was active at [TIME]. During this time, activity is recorded as 0% because you weren't actively using the computer. If the idle timeout was reached, you would have seen the idle prompt when you returned.</p>
+        `
+      },
+      'LOCATION_DENIED': {
+        title: '📍 Location Permissions Denied',
+        content: `
+          <h3>What happened?</h3>
+          <p>The device's location permissions for Hubstaff were denied or restricted.</p>
+          
+          <h3>Impact</h3>
+          <ul>
+            <li><strong>Job Sites won't work</strong> - App can't detect when user enters/exits locations</li>
+            <li><strong>Auto-start won't work</strong> - If project requires location, tracking can't start automatically</li>
+            <li><strong>May stop tracking</strong> - If currently tracking a location-required project</li>
+          </ul>
+          
+          <h3>Required permission level</h3>
+          <p>For Job Sites to work correctly, the app needs:</p>
+          <ul>
+            <li><strong>iOS:</strong> "Always" location permission</li>
+            <li><strong>Android:</strong> "Allow all the time" location permission</li>
+            <li><strong>Accuracy:</strong> Full/Precise (not approximate)</li>
+          </ul>
+          
+          <h3>What to check</h3>
+          <ol>
+            <li>Device Settings → Apps → Hubstaff → Permissions → Location</li>
+            <li>Ensure it's set to "Always" not "While using" or "Never"</li>
+            <li>Check that precise/accurate location is enabled</li>
+          </ol>
+          
+          <h3>What to tell the customer</h3>
+          <p>The logs show location permissions were denied or changed at [TIME]. For Job Sites to work, Hubstaff needs "Always" location permission. Please check your device settings and ensure location access is set to "Always" with precise accuracy enabled.</p>
         `
       }
     };
