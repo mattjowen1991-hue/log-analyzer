@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hubstaff Log Analyzer v33</title>
+  <title>Hubstaff Log Analyzer v34</title>
   <style>
     :root {
       --bg: #0f172a; --panel: #111827; --card: #0b1220; --text: #e5e7eb;
@@ -12,39 +12,41 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-    
+
     header { padding: 20px; border-bottom: 1px solid var(--border); background: var(--panel); }
     header h1 { font-size: 18px; margin-bottom: 4px; }
     header p { font-size: 12px; color: var(--muted); }
-    
+
     main { padding: 16px; max-width: 1400px; margin: 0 auto; }
-    
+
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    
+
     .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-    
+
     button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
     button:hover { border-color: #374151; }
     button.primary { background: #1e40af; border-color: #1e40af; }
-    
+
     textarea { width: 100%; height: 120px; background: #030712; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; resize: vertical; }
-    
+
     .status { font-size: 12px; color: var(--muted); margin-left: 8px; }
     .status.success { color: var(--accent); }
     .status.error { color: var(--danger); }
-    
-    .toggle-row { display: flex; align-items: center; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+
+    .toggle-row { display: flex; align-items: center; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
     .toggle-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .help-link { color: var(--accent); text-decoration: underline; cursor: pointer; margin-left: auto; }
-    
+    .tz-input-group { display: flex; align-items: center; gap: 6px; padding-left: 12px; border-left: 1px solid var(--border); }
+    .tz-input-group input { width: 100px; background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text); font-size: 12px; }
+
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
     .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
     .kpi-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
     .kpi-value { font-size: 22px; font-weight: 700; }
     .kpi-note { font-size: 10px; color: var(--warn); margin-top: 4px; }
-    
+
     .section-title { font-size: 13px; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
-    
+
     .table-wrap { max-height: 250px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -52,34 +54,34 @@
     tr:last-child td { border-bottom: none; }
     tr.highlight { background: rgba(34,197,94,0.2) !important; }
     tr.highlight td { color: #fff; font-weight: 600; }
-    
+
     .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
     .tag.ok { background: rgba(34,197,94,0.15); color: var(--accent); }
     .tag.warn { background: rgba(245,158,11,0.15); color: var(--warn); }
     .tag.danger { background: rgba(239,68,68,0.15); color: var(--danger); }
     .tag.resume { background: rgba(129,140,248,0.15); color: var(--resume); }
-    
+
     .time-link { color: var(--link); cursor: pointer; text-decoration: none; font-weight: 600; }
     .time-link:hover { text-decoration: underline; }
-    
+
     .timeline-section { display: none; }
     .timeline-section.visible { display: block; }
-    
+
     .timeline-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
     .timeline-legend { font-size: 11px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
     .timeline-legend span { display: flex; align-items: center; gap: 4px; }
     .legend-box { width: 12px; height: 12px; border-radius: 2px; }
-    
+
     .zoom-controls { display: flex; align-items: center; gap: 8px; margin-left: auto; background: var(--panel); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); }
     .zoom-controls label { font-size: 11px; color: var(--muted); }
     .zoom-controls input[type=range] { width: 120px; cursor: pointer; }
     .zoom-controls button { padding: 4px 8px; font-size: 11px; }
-    
+
     .timeline-container { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-x: auto; position: relative; cursor: crosshair; }
     .timeline-content { position: relative; min-width: 100%; }
     .timeline-track { position: relative; height: 32px; background: rgba(255,255,255,0.03); border-radius: 4px; margin-bottom: 12px; border: 1px solid var(--border); }
     .timeline-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
-    
+
     .t-block { position: absolute; height: 32px; border-radius: 3px; min-width: 3px; cursor: pointer; transition: opacity 0.15s; z-index: 10; }
     .t-block:hover { opacity: 0.75; }
     .t-block.selected { box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(255,255,255,0.5); z-index: 20; }
@@ -88,28 +90,28 @@
     .t-block.RESUMED { background: var(--resume); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.3); }
     .t-block.DISCARDED { background: repeating-linear-gradient(45deg, var(--discard), var(--discard) 4px, rgba(107,114,128,0.4) 4px, rgba(107,114,128,0.4) 8px); }
     .t-block.CONFIG_STOPPED { background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 85%, var(--danger) 85%, var(--danger) 100%); }
-    
+
     .t-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 14px; cursor: pointer; z-index: 10; }
     .t-marker:hover { transform: translate(-50%, -50%) scale(1.3); }
     .t-marker.selected { background: rgba(255,255,255,0.2); border-radius: 50%; padding: 2px; }
     .t-marker.clean { color: var(--accent); }
     .t-marker.crash { color: var(--danger); }
     .t-marker.shutdown { color: var(--muted); }
-    
+
     .timeline-cursor { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--danger); z-index: 5; display: none; pointer-events: none; box-shadow: 0 0 6px var(--danger); }
-    
+
     .info-box { position: absolute; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; padding: 14px; z-index: 1000; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.6); min-width: 220px; max-width: 300px; }
     .info-box h4 { color: var(--accent); font-size: 13px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
     .info-box p { font-size: 12px; color: var(--text); margin: 4px 0; line-height: 1.5; }
     .info-box .label { color: var(--muted); }
     .info-box .touch-link { color: var(--link); text-decoration: underline; cursor: pointer; font-size: 11px; margin-top: 8px; display: inline-block; }
-    
+
     .warnings-list { list-style: none; padding-left: 0; }
     .warnings-list li { padding: 10px 0; font-size: 12px; color: var(--text); border-bottom: 1px dashed var(--border); line-height: 1.6; }
     .warnings-list li:last-child { border-bottom: none; }
     .learn-more-btn { background: var(--link); border: none; color: #fff; padding: 3px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-left: 10px; vertical-align: middle; }
     .learn-more-btn:hover { background: #2563eb; }
-    
+
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1001; align-items: center; justify-content: center; }
     .modal-overlay.visible { display: flex; }
     .modal { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; padding: 24px; }
@@ -121,7 +123,7 @@
     .modal .tech-box { background: rgba(129,140,248,0.1); border: 1px solid rgba(129,140,248,0.3); border-radius: 8px; padding: 16px; margin-top: 20px; }
     .modal .tech-box h4 { color: var(--resume); margin: 0 0 10px 0; font-size: 13px; }
     .close-btn { float: right; background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-    
+
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
     .event-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
@@ -133,11 +135,11 @@
 </head>
 <body>
   <header>
-    <h1>Hubstaff Audit Log Analyzer (v33)</h1>
+    <h1>Hubstaff Audit Log Analyzer (v34)</h1>
     <p>Analyze audit.log files to understand tracking sessions, crashes, idle time, and more.</p>
     <p style="font-size:11px; color:var(--accent); margin-top:4px;">🔒 Privacy: All analysis happens in your browser. No data is sent to any server.</p>
   </header>
-  
+
   <main>
     <div class="card">
       <div class="controls">
@@ -150,10 +152,15 @@
       <textarea id="logInput" placeholder="Paste audit.log contents here..."></textarea>
       <div class="toggle-row">
         <label><input type="checkbox" id="plainMode" checked> Plain English mode</label>
+        <label><input type="checkbox" id="userTzMode"> Show user's timezone</label>
+        <div class="tz-input-group">
+          <input type="text" id="tzOffset" placeholder="e.g. 08:00 or +5.5">
+          <span id="tzLabel" style="font-size:11px"></span>
+        </div>
         <span class="help-link" id="helpBtn">Help & Info</span>
       </div>
     </div>
-    
+
     <div class="kpis">
       <div class="kpi">
         <div class="kpi-label">Tracked Time (est.)</div>
@@ -177,7 +184,7 @@
         <div class="kpi-value" id="kpiWarnings">0</div>
       </div>
     </div>
-    
+
     <div class="card timeline-section" id="timelineSection">
       <div class="timeline-header">
         <div class="section-title" style="margin:0;">Visual Timeline</div>
@@ -206,7 +213,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="grid-2">
       <div class="card">
         <div class="section-title">Interval Breakdown</div>
@@ -217,7 +224,7 @@
           </table>
         </div>
       </div>
-      
+
       <div class="card">
         <div class="section-title">Events & Warnings</div>
         <div class="table-wrap">
@@ -232,18 +239,17 @@
         </div>
       </div>
     </div>
-  <footer style="text-align:center; padding:20px; border-top:1px solid var(--border); margin-top:20px; font-size:12px; color:var(--muted);">
-      <span>Hubstaff Log Analyzer v33</span>
+    <footer style="text-align:center; padding:20px; border-top:1px solid var(--border); margin-top:20px; font-size:12px; color:var(--muted);">
+      <span>Hubstaff Log Analyzer v34</span>
       <span style="margin:0 10px;">|</span>
       <span class="help-link" id="privacyBtn">🔒 Privacy Info</span>
     </footer>
   </main>
-  
+
   <div class="modal-overlay" id="privacyModal">
     <div class="modal" style="max-width:550px;">
       <button class="close-btn" id="closePrivacy">Close</button>
       <h2>🔒 Privacy & Data Security</h2>
-      
       <h3>Your data stays on your device</h3>
       <p>This tool runs <strong>entirely in your web browser</strong>. When you paste log data:</p>
       <ul>
@@ -252,7 +258,6 @@
         <li>✅ No data is stored in cookies or browser storage</li>
         <li>✅ No tracking or analytics</li>
       </ul>
-      
       <h3>What happens when you click "Clear"</h3>
       <ul>
         <li>The text input is emptied</li>
@@ -260,33 +265,30 @@
         <li>All displayed results are removed</li>
         <li>A confirmation message appears</li>
       </ul>
-      
       <h3>What happens when you close the page</h3>
       <ul>
         <li>All data is automatically cleared</li>
         <li>Nothing persists after you leave</li>
         <li>No data remains in browser history</li>
       </ul>
-      
       <h3>Best practices</h3>
       <ul>
         <li>Click <strong>"Clear"</strong> when you're done analyzing</li>
         <li>Close the browser tab when finished</li>
         <li>Avoid sharing screenshots that show email addresses</li>
       </ul>
-      
       <div style="background:rgba(34,197,94,0.1); border:1px solid var(--accent); border-radius:8px; padding:12px; margin-top:16px;">
         <p style="margin:0; color:var(--accent);"><strong>✅ Safe to use with sensitive logs</strong></p>
         <p style="margin:8px 0 0 0; font-size:12px;">This tool is designed for support teams handling customer data. Your logs never leave your browser.</p>
       </div>
     </div>
   </div>
-  
+
   <div class="info-box" id="infoBox">
     <h4 id="infoTitle">Details</h4>
     <div id="infoContent"></div>
   </div>
-  
+
   <div class="modal-overlay" id="helpModal">
     <div class="modal">
       <button class="close-btn" id="closeHelp">Close</button>
@@ -398,7 +400,7 @@
       <p>All times displayed use the browser's local timezone for readability.</p>
     </div>
   </div>
-  
+
   <div class="modal-overlay" id="touchModal">
     <div class="modal" style="max-width:500px;">
       <button class="close-btn" id="closeTouchModal">Close</button>
@@ -426,18 +428,63 @@
     const $ = id => document.getElementById(id);
     const pad = n => String(n).padStart(2, '0');
     const fmtTime = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s/3600) + ':' + pad(Math.floor((s%3600)/60)) + ':' + pad(s%60); };
-    
+
     let result = null;
     let selectedEl = null;
     let timelineMin = null;
     let timelineDur = null;
     let focusRatio = null;
-    
+    let userTzOffsetMs = null;
+
+    function parseTzOffset(str) {
+      if (!str || !str.trim()) return null;
+      str = str.trim();
+      let sign = 1;
+      if (str.startsWith('-')) { sign = -1; str = str.slice(1); }
+      else if (str.startsWith('+')) { str = str.slice(1); }
+      let hours = 0, mins = 0;
+      if (str.includes(':')) {
+        const parts = str.split(':');
+        hours = parseInt(parts[0]) || 0;
+        mins = parseInt(parts[1]) || 0;
+      } else {
+        hours = parseFloat(str) || 0;
+        mins = Math.round((hours - Math.floor(hours)) * 60);
+        hours = Math.floor(hours);
+      }
+      return sign * (hours * 60 + mins) * 60 * 1000;
+    }
+
+    function updateTzLabel() {
+      const offset = parseTzOffset($('tzOffset').value);
+      if (offset !== null) {
+        const hrs = Math.floor(Math.abs(offset) / 3600000);
+        const mns = Math.floor((Math.abs(offset) % 3600000) / 60000);
+        const sgn = offset >= 0 ? '+' : '-';
+        $('tzLabel').textContent = 'UTC' + sgn + hrs + (mns ? ':' + pad(mns) : '');
+        $('tzLabel').style.color = 'var(--accent)';
+        userTzOffsetMs = offset;
+      } else {
+        $('tzLabel').textContent = $('tzOffset').value ? '⚠️ Invalid' : '';
+        $('tzLabel').style.color = 'var(--warn)';
+        userTzOffsetMs = null;
+      }
+    }
+
+    function fmtTimeWithTz(date) {
+      if (!date) return '';
+      if (!$('userTzMode').checked || userTzOffsetMs === null) {
+        return date.toLocaleTimeString();
+      }
+      const utcMs = date.getTime() + date.getTimezoneOffset() * 60 * 1000;
+      const userDate = new Date(utcMs + userTzOffsetMs);
+      return userDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}) + ' ★';
+    }
+
     function parseTs(line) {
       const m = line.match(/(\d{4}-\d{2}-\d{2})[\sT](\d{2}:\d{2}:\d{2})(?:\.(\d+))?([+-]\d{2}:?\d{2}|Z|\s[+-]\d{4})/);
       if (!m) return null;
       let tz = m[4].trim();
-      // Handle +1100 format (no colon)
       if (tz.length === 5 && (tz.startsWith('+') || tz.startsWith('-'))) {
         tz = tz.slice(0, 3) + ':' + tz.slice(3);
       }
@@ -445,11 +492,11 @@
       const d = new Date(`${m[1]}T${m[2]}.${ms}${tz}`);
       return isNaN(d.getTime()) ? null : d;
     }
-    
+
     function parseLine(line) {
       const ts = parseTs(line);
       let type = null, reason = null, plain = '', secs = null, keepIdle = null, stopTrack = null, resumeStart = null;
-      
+
       if (line.includes('(START_TRACKING)')) type = 'START_TRACKING';
       else if (line.includes('(STOP_TRACKING)')) type = 'STOP_TRACKING';
       else if (line.includes('(IDLE_WAKE)')) { type = 'IDLE_WAKE'; plain = 'User returned from idle.'; }
@@ -498,34 +545,34 @@
         plain = keepIdle === 1 ? 'User KEPT idle time.' : stopTrack === 1 ? 'User DISCARDED idle time.' : 'User responded to idle prompt.';
       }
       else if (line.toLowerCase().includes('sentry event')) { type = 'SENTRY'; plain = 'Crash reported to Sentry.'; }
-      
+
       if (type === 'START_TRACKING' || type === 'STOP_TRACKING') {
         const rm = line.match(/by \[([^\]]+)\]/);
         reason = rm ? rm[1] : 'USER';
       }
-      
+
       const fm = line.match(/(?:for|after)\s+(\d+)\s+seconds/i);
       if (fm) secs = parseInt(fm[1]);
-      
+
       return { ts, type, reason, plain, secs, keepIdle, stopTrack, resumeStart, raw: line };
     }
-    
+
     function analyze(text) {
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const events = lines.map(parseLine).filter(e => e.ts && e.type).sort((a,b) => a.ts - b.ts);
-      
+
       if (!events.length) return null;
-      
+
       const warns = [], intervals = [], discarded = [];
       let open = null, lastResume = null;
-      
+
       for (const e of events) {
         if (e.type === 'RESUME_DETECTED') { lastResume = e; continue; }
         if (e.type === 'RESUME_IGNORED') { lastResume = null; continue; }
         if (['STARTUP_CLEAN','STARTUP_UNCLEAN','SENTRY'].includes(e.type)) continue;
-        
+
         if (e.type === 'START_TRACKING') {
-          if (open) warns.push({ type: 'UNCLOSED', msg: 'Unclosed START at ' + open.ts.toLocaleTimeString(), time: open.ts });
+          if (open) warns.push({ type: 'UNCLOSED', msg: 'Unclosed START at ' + fmtTimeWithTz(open.ts), time: open.ts });
           if (e.reason === 'RESUMED' && lastResume?.resumeStart) {
             e.ts = lastResume.resumeStart;
             e.reason = 'RESUMED';
@@ -534,88 +581,54 @@
           open = e;
         } else if (e.type === 'STOP_TRACKING' || e.type === 'SHUTDOWN') {
           if (!open) {
-            warns.push({ type: 'UNMATCHED', msg: 'Unmatched STOP at ' + e.ts.toLocaleTimeString(), time: e.ts });
+            warns.push({ type: 'UNMATCHED', msg: 'Unmatched STOP at ' + fmtTimeWithTz(e.ts), time: e.ts });
           } else {
             intervals.push({ start: open.ts, stop: e.ts, secs: (e.ts - open.ts)/1000, startReason: open.reason || 'USER', stopReason: e.reason || (e.type === 'SHUTDOWN' ? 'SHUTDOWN' : 'USER') });
             open = null;
           }
         }
       }
-      
-      if (open) warns.push({ type: 'UNCLOSED', msg: 'Timer still running at ' + open.ts.toLocaleTimeString(), time: open.ts });
-      
-      // Sort intervals first
+
+      if (open) warns.push({ type: 'UNCLOSED', msg: 'Timer still running at ' + fmtTimeWithTz(open.ts), time: open.ts });
+
       intervals.sort((a,b) => a.start - b.start);
-      
-      // Detect quick start/stop (accidental double-click)
+
       for (let i = 0; i < intervals.length; i++) {
         const it = intervals[i];
         if (it.secs <= 5 && it.startReason === 'USER' && it.stopReason === 'USER') {
-          warns.push({ 
-            type: 'QUICK_STARTSTOP', 
-            msg: `Quick start/stop at ${it.start.toLocaleTimeString()} (${Math.round(it.secs)}s) - likely accidental double-click`,
-            time: it.start
-          });
+          warns.push({ type: 'QUICK_STARTSTOP', msg: `Quick start/stop at ${fmtTimeWithTz(it.start)} (${Math.round(it.secs)}s) - likely accidental double-click`, time: it.start });
         }
-        // Detect stopped by configuration
         if (it.stopReason === 'CONFIGURATION') {
-          warns.push({
-            type: 'STOPPED_BY_CONFIG',
-            msg: `Tracking stopped by configuration at ${it.stop.toLocaleTimeString()}`,
-            time: it.stop
-          });
+          warns.push({ type: 'STOPPED_BY_CONFIG', msg: `Tracking stopped by configuration at ${fmtTimeWithTz(it.stop)}`, time: it.stop });
         }
       }
-      
-      // Detect crash events and calculate impact
+
       const crashes = events.filter(e => e.type === 'STARTUP_UNCLEAN');
       const resumes = events.filter(e => e.type === 'RESUME_DETECTED');
       const resumeIgnores = events.filter(e => e.type === 'RESUME_IGNORED');
-      
+
       for (const crash of crashes) {
-        // Find if there was a resume or ignore after this crash
-        const resumeAfter = resumes.find(r => r.ts > crash.ts && r.ts - crash.ts < 60000); // within 1 min
+        const resumeAfter = resumes.find(r => r.ts > crash.ts && r.ts - crash.ts < 60000);
         const ignoreAfter = resumeIgnores.find(r => r.ts > crash.ts && r.ts - crash.ts < 60000);
-        
+
         if (resumeAfter && resumeAfter.resumeStart) {
-          // Calculate recovered time
           const recoveredSecs = (resumeAfter.ts - resumeAfter.resumeStart) / 1000;
-          warns.push({
-            type: 'CRASH_RECOVERED',
-            msg: `App crashed at ${crash.ts.toLocaleTimeString()} - successfully recovered ${fmtTime(recoveredSecs)} of tracking time`,
-            time: crash.ts,
-            recovered: recoveredSecs
-          });
+          warns.push({ type: 'CRASH_RECOVERED', msg: `App crashed at ${fmtTimeWithTz(crash.ts)} - successfully recovered ${fmtTime(recoveredSecs)} of tracking time`, time: crash.ts, recovered: recoveredSecs });
         } else if (ignoreAfter) {
-          // Resume was ignored (too old)
-          warns.push({
-            type: 'CRASH_TIME_LOST',
-            msg: `App crashed at ${crash.ts.toLocaleTimeString()} - previous session was too old to recover (over 1 hour)`,
-            time: crash.ts
-          });
+          warns.push({ type: 'CRASH_TIME_LOST', msg: `App crashed at ${fmtTimeWithTz(crash.ts)} - previous session was too old to recover (over 1 hour)`, time: crash.ts });
         } else {
-          // Crash but no resume info - check if there was an open interval
           const unclosedStart = events.filter(e => e.type === 'START_TRACKING' && e.ts < crash.ts).pop();
           const matchingStop = events.find(e => (e.type === 'STOP_TRACKING' || e.type === 'SHUTDOWN') && e.ts > unclosedStart?.ts && e.ts < crash.ts);
-          
+
           if (unclosedStart && !matchingStop) {
             const lostSecs = (crash.ts - unclosedStart.ts) / 1000;
-            warns.push({
-              type: 'CRASH_TIME_LOST',
-              msg: `App crashed at ${crash.ts.toLocaleTimeString()} while tracking - potentially lost ~${fmtTime(lostSecs)} (check if time appears in dashboard)`,
-              time: crash.ts,
-              lost: lostSecs
-            });
+            warns.push({ type: 'CRASH_TIME_LOST', msg: `App crashed at ${fmtTimeWithTz(crash.ts)} while tracking - potentially lost ~${fmtTime(lostSecs)} (check if time appears in dashboard)`, time: crash.ts, lost: lostSecs });
           } else {
-            warns.push({
-              type: 'CRASH_NO_TRACKING',
-              msg: `App crashed at ${crash.ts.toLocaleTimeString()} - user was not tracking at the time`,
-              time: crash.ts
-            });
+            warns.push({ type: 'CRASH_NO_TRACKING', msg: `App crashed at ${fmtTimeWithTz(crash.ts)} - user was not tracking at the time`, time: crash.ts });
           }
         }
       }
-      
+
       let idleKept = 0, idleDisc = 0;
       const answers = events.filter(e => e.type === 'IDLE_ANSWER');
       for (const a of answers) {
@@ -628,37 +641,37 @@
           }
         }
       }
-      
+
       const others = events.filter(e => !['START_TRACKING','STOP_TRACKING'].includes(e.type));
-      
+
       return { intervals, discarded, warns, events: others, idleKept, idleDisc, allEvents: events };
     }
-    
+
     function hideInfoBox() {
       $('infoBox').style.display = 'none';
       if (selectedEl) { selectedEl.classList.remove('selected'); selectedEl = null; }
       document.querySelectorAll('tr.highlight').forEach(r => r.classList.remove('highlight'));
     }
-    
+
     function showInfoBox(e, title, content) {
       const box = $('infoBox');
       $('infoTitle').textContent = title;
       $('infoContent').innerHTML = content;
       box.style.display = 'block';
-      
+
       let top = e.pageY - box.offsetHeight - 10;
       let left = e.pageX - box.offsetWidth / 2;
       if (top < window.scrollY + 10) top = e.pageY + 15;
       if (left < 10) left = 10;
       if (left + box.offsetWidth > window.innerWidth - 10) left = window.innerWidth - box.offsetWidth - 10;
-      
+
       box.style.top = top + 'px';
       box.style.left = left + 'px';
     }
-    
+
     function render(data) {
       const plain = $('plainMode').checked;
-      
+
       if (!data) {
         $('kpiTotal').textContent = '0:00:00';
         $('kpiIntervals').textContent = '0';
@@ -671,145 +684,105 @@
         $('timelineSection').classList.remove('visible');
         return;
       }
-      
+
       const total = data.intervals.reduce((s,i) => s + i.secs, 0);
       $('kpiTotal').textContent = fmtTime(total);
       $('kpiIntervals').textContent = data.intervals.length;
       $('kpiIdleKept').textContent = fmtTime(data.idleKept);
       $('kpiIdleDisc').textContent = fmtTime(data.idleDisc);
       $('kpiWarnings').textContent = data.warns.length;
-      
-      // Intervals table
+
       $('intervalsBody').innerHTML = data.intervals.map((it, i) => {
         const stopCls = it.stopReason === 'USER' ? 'ok' : it.stopReason === 'IDLE' ? 'warn' : it.stopReason === 'SHUTDOWN' ? 'ok' : it.stopReason === 'CONFIGURATION' ? 'danger' : it.stopReason === 'PROJECT_CONFIGURATION_LOCATION' ? 'danger' : 'danger';
         const startCls = it.startReason === 'RESUMED' ? 'resume' : it.startReason === 'IDLE' ? 'warn' : 'ok';
         const isRecovered = it.startReason === 'RESUMED';
         const rowStyle = isRecovered ? 'background: rgba(129,140,248,0.1);' : '';
         const recoveredBadge = isRecovered ? ' <span class="tag resume">RECOVERED</span>' : '';
-        return `<tr id="row-${i}" style="${rowStyle}"><td>${i+1}${recoveredBadge}</td><td><span class="time-link" data-ts="${it.start.toISOString()}">${it.start.toLocaleTimeString()}</span></td><td><span class="time-link" data-ts="${it.stop.toISOString()}">${it.stop.toLocaleTimeString()}</span></td><td><span class="tag ok">${fmtTime(it.secs)}</span></td><td><span class="tag ${stopCls}">${it.stopReason}</span></td></tr>`;
+        return `<tr id="row-${i}" style="${rowStyle}"><td>${i+1}${recoveredBadge}</td><td><span class="time-link" data-ts="${it.start.toISOString()}">${fmtTimeWithTz(it.start)}</span></td><td><span class="time-link" data-ts="${it.stop.toISOString()}">${fmtTimeWithTz(it.stop)}</span></td><td><span class="tag ok">${fmtTime(it.secs)}</span></td><td><span class="tag ${stopCls}">${it.stopReason}</span></td></tr>`;
       }).join('');
-      
-      // Add click handlers to time links
+
       $('intervalsBody').querySelectorAll('.time-link').forEach(el => {
         el.addEventListener('click', () => snapToTime(el.dataset.ts));
       });
-      
-      // Events table - include crash warnings as events
+
       const crashWarns = data.warns.filter(w => w.type && w.type.startsWith('CRASH_'));
       const allEventsForTable = [...data.events];
-      
-      // Add crash warnings as synthetic events
+
       crashWarns.forEach(w => {
         allEventsForTable.push({
           ts: w.time,
           type: w.type,
-          plain: w.type === 'CRASH_RECOVERED' 
-            ? `✅ App crashed but time was recovered successfully` 
-            : w.type === 'CRASH_TIME_LOST'
-            ? `⚠️ App crashed - some time may have been lost`
-            : w.type === 'CRASH_NO_TRACKING'
-            ? `ℹ️ App crashed but user wasn't tracking`
-            : w.msg,
+          plain: w.type === 'CRASH_RECOVERED' ? `✅ App crashed but time was recovered successfully` : w.type === 'CRASH_TIME_LOST' ? `⚠️ App crashed - some time may have been lost` : w.type === 'CRASH_NO_TRACKING' ? `ℹ️ App crashed but user wasn't tracking` : w.msg,
           isCrashEvent: true,
           recovered: w.recovered,
           lost: w.lost
         });
       });
-      
-      // Sort by time
+
       allEventsForTable.sort((a, b) => a.ts - b.ts);
-      
+
       $('eventsBody').innerHTML = allEventsForTable.map(e => {
         let cls = 'tag';
         let detail = plain && e.plain ? e.plain : e.type;
         let rowStyle = '';
-        
+
         if (e.isCrashEvent) {
-          if (e.type === 'CRASH_RECOVERED') {
-            cls += ' ok';
-            rowStyle = 'background: rgba(34,197,94,0.15);';
-            if (plain && e.recovered) detail = `✅ App crashed but recovered ${fmtTime(e.recovered)} of tracking time`;
-          } else if (e.type === 'CRASH_TIME_LOST') {
-            cls += ' danger';
-            rowStyle = 'background: rgba(239,68,68,0.15);';
-            if (plain && e.lost) detail = `⚠️ App crashed - potentially lost ~${fmtTime(e.lost)}. Check dashboard.`;
-          } else {
-            cls += ' warn';
-            rowStyle = 'background: rgba(245,158,11,0.1);';
-          }
+          if (e.type === 'CRASH_RECOVERED') { cls += ' ok'; rowStyle = 'background: rgba(34,197,94,0.15);'; if (plain && e.recovered) detail = `✅ App crashed but recovered ${fmtTime(e.recovered)} of tracking time`; }
+          else if (e.type === 'CRASH_TIME_LOST') { cls += ' danger'; rowStyle = 'background: rgba(239,68,68,0.15);'; if (plain && e.lost) detail = `⚠️ App crashed - potentially lost ~${fmtTime(e.lost)}. Check dashboard.`; }
+          else { cls += ' warn'; rowStyle = 'background: rgba(245,158,11,0.1);'; }
         }
         else if (e.type.includes('IDLE')) cls += ' warn';
-        else if (e.type === 'STARTUP_UNCLEAN' || e.type === 'SENTRY') { 
-          cls += ' danger'; 
-          rowStyle = 'background: rgba(239,68,68,0.1);';
-          if (plain) detail = '⚠️ ' + detail;
-        }
-        else if (e.type === 'RESUME_DETECTED') { 
-          cls += ' resume'; 
-          rowStyle = 'background: rgba(129,140,248,0.1);';
-          if (plain && e.resumeStart) {
-            const recoveredSecs = (e.ts - e.resumeStart) / 1000;
-            detail = `✅ Recovered ${fmtTime(recoveredSecs)} of tracking time (from ${e.resumeStart.toLocaleTimeString()})`;
-          }
-        }
-        else if (e.type === 'RESUME_IGNORED') {
-          cls += ' warn';
-          rowStyle = 'background: rgba(245,158,11,0.1);';
-          if (plain) detail = '⚠️ Previous session too old - time could not be recovered';
-        }
+        else if (e.type === 'STARTUP_UNCLEAN' || e.type === 'SENTRY') { cls += ' danger'; rowStyle = 'background: rgba(239,68,68,0.1);'; if (plain) detail = '⚠️ ' + detail; }
+        else if (e.type === 'RESUME_DETECTED') { cls += ' resume'; rowStyle = 'background: rgba(129,140,248,0.1);'; if (plain && e.resumeStart) { const recoveredSecs = (e.ts - e.resumeStart) / 1000; detail = `✅ Recovered ${fmtTime(recoveredSecs)} of tracking time (from ${fmtTimeWithTz(e.resumeStart)})`; } }
+        else if (e.type === 'RESUME_IGNORED') { cls += ' warn'; rowStyle = 'background: rgba(245,158,11,0.1);'; if (plain) detail = '⚠️ Previous session too old - time could not be recovered'; }
         else if (e.type.includes('CLEAN') || e.type === 'SHUTDOWN') cls += ' ok';
-        
-        return `<tr style="${rowStyle}"><td>${e.ts.toLocaleTimeString()}</td><td><span class="${cls}">${e.type}</span></td><td style="color:var(--muted);font-size:11px;">${detail}</td></tr>`;
+
+        return `<tr style="${rowStyle}"><td>${fmtTimeWithTz(e.ts)}</td><td><span class="${cls}">${e.type}</span></td><td style="color:var(--muted);font-size:11px;">${detail}</td></tr>`;
       }).join('');
-      
-      // Warnings
+
       if (data.warns.length) {
         $('warningsList').innerHTML = data.warns.map(w => {
           let msg, cls = '';
           const hasLearnMore = ['QUICK_STARTSTOP', 'CRASH_RECOVERED', 'CRASH_TIME_LOST', 'CRASH_NO_TRACKING', 'UNCLOSED', 'UNMATCHED', 'STOPPED_BY_CONFIG'].includes(w.type);
           const learnMoreBtn = hasLearnMore ? `<button class="learn-more-btn" data-type="${w.type}">Learn more</button>` : '';
-          
+
           if (plain) {
             if (w.type === 'UNCLOSED') msg = 'Timer started but never stopped - likely a crash or still running.';
             else if (w.type === 'UNMATCHED') msg = 'Stop found without matching start - log may be incomplete.';
-            else if (w.type === 'QUICK_STARTSTOP') msg = `⚡ User likely double-clicked the record button at ${w.time.toLocaleTimeString()} - timer started and stopped almost instantly.`;
-            else if (w.type === 'CRASH_RECOVERED') { msg = `✅ App crashed at ${w.time.toLocaleTimeString()} but time was recovered successfully.`; cls = 'color:var(--accent)'; }
-            else if (w.type === 'CRASH_TIME_LOST') { msg = `⚠️ App crashed at ${w.time.toLocaleTimeString()} - some time may have been lost. Check the dashboard to confirm.`; cls = 'color:var(--warn)'; }
-            else if (w.type === 'CRASH_NO_TRACKING') msg = `ℹ️ App crashed at ${w.time.toLocaleTimeString()} but user wasn't tracking, so no time was lost.`;
+            else if (w.type === 'QUICK_STARTSTOP') msg = `⚡ User likely double-clicked the record button at ${fmtTimeWithTz(w.time)} - timer started and stopped almost instantly.`;
+            else if (w.type === 'CRASH_RECOVERED') { msg = `✅ App crashed at ${fmtTimeWithTz(w.time)} but time was recovered successfully.`; cls = 'color:var(--accent)'; }
+            else if (w.type === 'CRASH_TIME_LOST') { msg = `⚠️ App crashed at ${fmtTimeWithTz(w.time)} - some time may have been lost. Check the dashboard to confirm.`; cls = 'color:var(--warn)'; }
+            else if (w.type === 'CRASH_NO_TRACKING') msg = `ℹ️ App crashed at ${fmtTimeWithTz(w.time)} but user wasn't tracking, so no time was lost.`;
             else msg = w.msg;
-          } else {
-            msg = w.msg;
-          }
+          } else { msg = w.msg; }
           return `<li style="${cls}"><span>${msg}</span>${learnMoreBtn}</li>`;
         }).join('');
       } else {
         $('warningsList').innerHTML = '<li style="color:var(--muted)">No warnings</li>';
       }
-      
-      // Add click handlers for learn more buttons
+
       $('warningsList').querySelectorAll('.learn-more-btn').forEach(btn => {
         btn.addEventListener('click', () => showLearnMore(btn.dataset.type));
       });
-      
+
       renderTimeline(data);
     }
-    
+
     function renderTimeline(data) {
       const all = [...data.intervals, ...data.discarded];
       if (!all.length) { $('timelineSection').classList.remove('visible'); return; }
-      
+
       let min = new Date(8640000000000000), max = new Date(-8640000000000000);
       all.forEach(i => { if (i.start < min) min = i.start; if (i.stop > max) max = i.stop; });
       data.allEvents.forEach(e => { if (e.ts < min) min = e.ts; if (e.ts > max) max = e.ts; });
-      
+
       min = new Date(min.getTime() - 5*60000);
       max = new Date(max.getTime() + 5*60000);
       timelineMin = min;
       timelineDur = max - min;
-      
+
       const pos = t => ((t - min) / timelineDur) * 100;
-      
-      // Main track - intervals
+
       let mainHTML = '';
       data.intervals.forEach((it, idx) => {
         const left = pos(it.start), width = Math.max(pos(it.stop) - left, 0.3);
@@ -817,55 +790,52 @@
         const touching = next && (next.start - it.stop) < 2000;
         mainHTML += `<div class="t-block ${it.startReason}" data-idx="${idx}" data-touching="${touching}" style="left:${left}%;width:${width}%"></div>`;
       });
-      
-      // Discarded
+
       data.discarded.forEach(d => {
         const left = pos(d.start), width = Math.max(pos(d.stop) - left, 0.3);
-        mainHTML += `<div class="t-block DISCARDED" data-type="discarded" data-secs="${d.secs}" data-start="${d.start.toLocaleTimeString()}" data-stop="${d.stop.toLocaleTimeString()}" style="left:${left}%;width:${width}%"></div>`;
+        mainHTML += `<div class="t-block DISCARDED" data-type="discarded" data-secs="${d.secs}" data-start="${fmtTimeWithTz(d.start)}" data-stop="${fmtTimeWithTz(d.stop)}" style="left:${left}%;width:${width}%"></div>`;
       });
-      
+
       $('trackMain').innerHTML = mainHTML;
-      
-      // Events track
+
       let eventsHTML = '';
       data.allEvents.filter(e => ['STARTUP_CLEAN','STARTUP_UNCLEAN','SHUTDOWN','SENTRY'].includes(e.type)).forEach(e => {
         let cls = 'shutdown', char = '●';
         if (e.type === 'STARTUP_CLEAN') cls = 'clean';
         else if (e.type === 'STARTUP_UNCLEAN') { cls = 'crash'; char = '✖'; }
         else if (e.type === 'SENTRY') cls = 'crash';
-        eventsHTML += `<div class="t-marker ${cls}" data-event="${e.type}" data-time="${e.ts.toLocaleTimeString()}" data-plain="${e.plain}" style="left:${pos(e.ts)}%">${char}</div>`;
+        eventsHTML += `<div class="t-marker ${cls}" data-event="${e.type}" data-time="${fmtTimeWithTz(e.ts)}" data-plain="${e.plain}" style="left:${pos(e.ts)}%">${char}</div>`;
       });
-      
+
       $('trackEvents').innerHTML = eventsHTML;
       $('timelineSection').classList.add('visible');
-      
-      // Add click handlers to blocks
+
       $('trackMain').querySelectorAll('.t-block').forEach(el => {
         el.addEventListener('click', e => {
           e.stopPropagation();
           if (selectedEl === el) { hideInfoBox(); return; }
-          
+
           hideInfoBox();
           selectedEl = el;
           el.classList.add('selected');
-          
+
           const idx = el.dataset.idx;
           if (idx !== undefined) {
             const it = data.intervals[parseInt(idx)];
             const row = $('row-' + idx);
             if (row) row.classList.add('highlight');
-            
-            let content = `<p><span class="label">Start:</span> ${it.start.toLocaleTimeString()}</p>`;
-            content += `<p><span class="label">Stop:</span> ${it.stop.toLocaleTimeString()}</p>`;
+
+            let content = `<p><span class="label">Start:</span> ${fmtTimeWithTz(it.start)}</p>`;
+            content += `<p><span class="label">Stop:</span> ${fmtTimeWithTz(it.stop)}</p>`;
             content += `<p><span class="label">Duration:</span> ${fmtTime(it.secs)}</p>`;
             content += `<p><span class="label">Started by:</span> ${it.startReason}</p>`;
             content += `<p><span class="label">Stopped by:</span> ${it.stopReason}</p>`;
             if (el.dataset.touching === 'true') {
               content += `<span class="touch-link" id="touchLink">Why are these bars touching?</span>`;
             }
-            
+
             showInfoBox(e, 'Tracking Interval', content);
-            
+
             if (el.dataset.touching === 'true') {
               $('touchLink')?.addEventListener('click', () => $('touchModal').classList.add('visible'));
             }
@@ -878,25 +848,23 @@
           }
         });
       });
-      
-      // Add click handlers to markers
+
       $('trackEvents').querySelectorAll('.t-marker').forEach(el => {
         el.addEventListener('click', e => {
           e.stopPropagation();
           if (selectedEl === el) { hideInfoBox(); return; }
-          
+
           hideInfoBox();
           selectedEl = el;
           el.classList.add('selected');
-          
+
           const plain = $('plainMode').checked;
           const content = `<p><span class="label">Event:</span> ${el.dataset.event}</p><p><span class="label">Time:</span> ${el.dataset.time}</p><p>${plain ? el.dataset.plain : ''}</p>`;
           showInfoBox(e, 'App Event', content);
         });
       });
     }
-    
-    // Event listeners
+
     $('analyzeBtn').onclick = () => {
       result = analyze($('logInput').value);
       $('status').textContent = result ? `Found ${result.allEvents.length} events` : 'No valid events found';
@@ -904,15 +872,11 @@
       render(result);
       hideInfoBox();
     };
-    
+
     $('clearBtn').onclick = () => {
-      // Securely clear all data
       $('logInput').value = '';
       $('status').textContent = '';
-      
-      // Clear the result object
       if (result) {
-        // Overwrite arrays with empty arrays
         if (result.intervals) result.intervals.length = 0;
         if (result.discarded) result.discarded.length = 0;
         if (result.warns) result.warns.length = 0;
@@ -920,28 +884,29 @@
         if (result.allEvents) result.allEvents.length = 0;
       }
       result = null;
-      
-      // Clear timeline state
       timelineMin = null;
       timelineDur = null;
       focusRatio = null;
       selectedEl = null;
-      
-      // Clear rendered content
       render(null);
       hideInfoBox();
-      
-      // Show confirmation
       $('status').textContent = '🔒 All data cleared from memory';
       $('status').className = 'status success';
       setTimeout(() => { $('status').textContent = ''; }, 3000);
-      
-      // Force garbage collection hint (browser may or may not act on this)
       if (window.gc) window.gc();
     };
-    
+
     $('plainMode').onchange = () => render(result);
-    
+    $('tzOffset').oninput = () => { updateTzLabel(); if ($('userTzMode').checked) render(result); };
+    $('userTzMode').onchange = () => {
+      if ($('userTzMode').checked && userTzOffsetMs === null) {
+        $('tzOffset').focus();
+        $('tzOffset').style.borderColor = 'var(--warn)';
+        setTimeout(() => { $('tzOffset').style.borderColor = ''; }, 1500);
+      }
+      render(result);
+    };
+
     $('sampleBtn').onclick = () => {
       $('logInput').value = `2025-11-07 09:00:00 +0000 [AUDIT] (STARTUP_CLEAN) Startup
 2025-11-07 09:05:00 +0000 [AUDIT] (START_TRACKING) Tracking Started: [Project:0] by [USER]
@@ -961,7 +926,7 @@
 2025-11-07 13:01:00 +0000 [AUDIT] (SHUTDOWN) Shutdown client`;
       $('analyzeBtn').click();
     };
-    
+
     $('sampleLostBtn').onclick = () => {
       $('logInput').value = `2025-11-07 09:00:00 +0000 [AUDIT] (STARTUP_CLEAN) Startup
 2025-11-07 09:05:00 +0000 [AUDIT] (START_TRACKING) Tracking Started: [Project:0] by [USER]
@@ -974,8 +939,7 @@
 2025-11-07 14:01:00 +0000 [AUDIT] (SHUTDOWN) Shutdown client`;
       $('analyzeBtn').click();
     };
-    
-    // Zoom controls
+
     $('zoomSlider').oninput = function() {
       const content = $('timelineContent');
       const container = $('timelineContainer');
@@ -984,7 +948,7 @@
         container.scrollLeft = content.offsetWidth * focusRatio - container.offsetWidth / 2;
       }
     };
-    
+
     $('resetZoom').onclick = () => {
       $('zoomSlider').value = 1;
       $('timelineContent').style.width = '100%';
@@ -993,40 +957,34 @@
       focusRatio = null;
       hideInfoBox();
     };
-    
-    // Timeline click for cursor
+
     $('timelineContainer').onclick = e => {
       if (e.target.classList.contains('t-block') || e.target.classList.contains('t-marker')) return;
       hideInfoBox();
-      
       const content = $('timelineContent');
       const rect = content.getBoundingClientRect();
       focusRatio = (e.clientX - rect.left) / rect.width;
-      
       const cursor = $('timelineCursor');
       cursor.style.display = 'block';
       cursor.style.left = (focusRatio * 100) + '%';
     };
-    
-    // Close info box on outside click
+
     document.addEventListener('click', e => {
       if (!e.target.closest('.info-box') && !e.target.closest('.t-block') && !e.target.closest('.t-marker')) {
         hideInfoBox();
       }
     });
-    
-    // Modals
+
     $('helpBtn').onclick = () => $('helpModal').classList.add('visible');
     $('closeHelp').onclick = () => $('helpModal').classList.remove('visible');
     $('helpModal').onclick = e => { if (e.target === $('helpModal')) $('helpModal').classList.remove('visible'); };
-    
+
     $('closeLearnMore').onclick = () => $('learnMoreModal').classList.remove('visible');
     $('learnMoreModal').onclick = e => { if (e.target === $('learnMoreModal')) $('learnMoreModal').classList.remove('visible'); };
-    
+
     $('closeTouchModal').onclick = () => $('touchModal').classList.remove('visible');
     $('touchModal').onclick = e => { if (e.target === $('touchModal')) $('touchModal').classList.remove('visible'); };
-    
-    // Learn more content for each warning type
+
     const learnMoreData = {
       'QUICK_STARTSTOP': {
         title: '⚡ Quick Start/Stop (Double-Click)',
@@ -1416,21 +1374,19 @@
         `
       }
     };
-    
+
     function showLearnMore(type) {
       const data = learnMoreData[type];
       if (!data) return;
-      
       $('learnMoreTitle').textContent = data.title;
       $('learnMoreContent').innerHTML = data.content;
       $('learnMoreModal').classList.add('visible');
     }
-    
+
     $('privacyBtn').onclick = () => $('privacyModal').classList.add('visible');
     $('closePrivacy').onclick = () => $('privacyModal').classList.remove('visible');
     $('privacyModal').onclick = e => { if (e.target === $('privacyModal')) $('privacyModal').classList.remove('visible'); };
-    
-    // Clear data when page is closed/navigated away
+
     window.addEventListener('beforeunload', () => {
       $('logInput').value = '';
       if (result) {
@@ -1442,42 +1398,29 @@
       }
       result = null;
     });
-    
-    // Keyboard shortcut - Cmd/Ctrl + Enter to analyze
+
     document.addEventListener('keydown', e => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
         $('analyzeBtn').click();
       }
     });
-    
-    // Snap to time function
+
     function snapToTime(isoString) {
       if (!timelineMin || !timelineDur) return;
-      
       const targetTime = new Date(isoString);
       if (isNaN(targetTime.getTime())) return;
-      
       const ratio = (targetTime - timelineMin) / timelineDur;
       if (ratio < 0 || ratio > 1) return;
-      
       focusRatio = ratio;
-      
-      // Zoom in to 10x
       $('zoomSlider').value = 10;
       const content = $('timelineContent');
       const container = $('timelineContainer');
       content.style.width = '1000%';
-      
-      // Show and position cursor
       const cursor = $('timelineCursor');
       cursor.style.display = 'block';
       cursor.style.left = (ratio * 100) + '%';
-      
-      // Scroll to center on the cursor
       container.scrollLeft = content.offsetWidth * ratio - container.offsetWidth / 2;
-      
-      // Flash effect
       cursor.style.boxShadow = '0 0 15px 3px yellow';
       setTimeout(() => { cursor.style.boxShadow = '0 0 6px var(--danger)'; }, 500);
     }
